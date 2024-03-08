@@ -1,2 +1,6 @@
 # WebServer
-A test for WebServer
+这是一个基于C++11实现的Reactor模式的WebServer服务器，在windows平台编写。
+
+
+fd全称是file descriptor,是进程独有的文件描述符表的索引
+struct iovec定义了一个向量元素。通常，这个结构用作一个多元素的数组。对于每一个传输的元素，指针成员iov_base指向一个缓冲区，这个缓冲区是存放的是readv所接收的数据或是writev将要发送的数据。成员iov_len在各种情况下分别确定了接收的最大长度以及实际写入的长度。
