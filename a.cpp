@@ -5,5 +5,5 @@ class V {
         this->per = 2;
     }
     int val,per;
-    int aaaa,bbbb;
+    int aaaa,bbbb,cccc;
 };
