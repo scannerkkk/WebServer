@@ -1,5 +1,5 @@
 # WebServer
-这是一个基于C++11实现的Reactor模式的WebServer服务器，在windows平台编写。
+这是一个基于C++11实现的Reactor模式的WebServer服务器，在Ubuntu20.04环境下编写。
 
 
 fd全称是file descriptor,是进程独有的文件描述符表的索引
