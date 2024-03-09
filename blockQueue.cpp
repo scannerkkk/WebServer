@@ -12,7 +12,7 @@ BlockQueue<T>::~BlockQueue() {
     close();
 }
 
-// 操作阻塞队列之前需要先上锁
+// 操作队列之前需要先上锁
 template <class T>
 void BlockQueue<T>::close() {
     clear();
