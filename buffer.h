@@ -2,10 +2,11 @@
 #define BUFFER_H
 #include <cstring>
 #include <iostream>
-#include <io.h>
+#include <sys/uio.h>
 #include <vector>
 #include <atomic>
 #include <cassert>
+#include <unistd.h>
 
 class Buffer {    
 public:
@@ -33,11 +34,11 @@ public:
     void Append(const void* data,size_t len);
     void Append(const Buffer& buffer);
 
-    auto ReadFd(int fd,int* Errno);
-    auto WriteFd(int fd,int* Errno);
+    ssize_t ReadFd(int fd,int* Errno);
+    ssize_t WriteFd(int fd,int* Errno);
     
 private:
-    char* BeginPtr(); // Buffer开头
+    char* BeginPtr_(); // Buffer开头
     const char* BeginPtr_() const;
     void MakeSpace_(size_t len);
 

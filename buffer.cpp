@@ -20,7 +20,7 @@ size_t Buffer::PrependableBytes() const {
 
 // 读下标地址
 const char* Buffer::Peek() const {
-    return &buffer_[read_Pos];
+    return &buffer_[readPos_];
 }
 
 // 确保可写长度
@@ -92,9 +92,57 @@ void Buffer::Append(const Buffer& buffer) {
 }
 
 // 将fd的内容读到缓冲区，即Writable位置
-auto Buffer::ReadFd(int fd,int* Errno) {
+ssize_t Buffer::ReadFd(int fd,int* Errno) {
     char buffer[65535]; // 临时栈
-    struct iovec iov[2];
-    
+    iovec iov[2];
+    size_t writeable = WritableBytes(); // 记录能读多少
+    iov[0].iov_base = BeginWrite();
+    iov[0].iov_len = writeable;
+    iov[1].iov_base = buffer;
+    iov[1].iov_len = sizeof(buffer);
+
+    ssize_t len = readv(fd,iov,2);
+    if (len < 0) {
+        *Errno = errno;
+    } else if (static_cast<size_t>(len) <= writeable) { // 若buffer容量还足，则直接写入
+        writePos_ += len;
+    }
+    else {
+        writePos_ += buffer_.size();
+        Append(buffer,static_cast<size_t>(len - writeable)); // 若buffer不足，则把剩余填满，然后开空间填
+    }
+    return len;
+}
+
+// 将buffer中可读的区域写入fd中
+ssize_t Buffer::WriteFd(int fd,int* Errno) {
+    auto len = write(fd,Peek(),ReadableBytes());
+    if (len < 0) {
+        *Errno = errno;
+        return len;
+    }
+    Retrieve(len);
+    return len;
+}
+
+char* Buffer::BeginPtr_() {
+    return &buffer_[0];
+}
+
+const char* Buffer::BeginPtr_() const {
+    return &buffer_[0];
+}
+
+// 扩展空间
+void Buffer::MakeSpace_(size_t len) {
+    if (WritableBytes() + PrependableBytes() < len) {
+        buffer_.resize(writePos_ + len + 1);
+    } else {
+        size_t readable = ReadableBytes();
+        std::copy(BeginPtr_() + readPos_,BeginPtr_() + writePos_,BeginPtr_());
+        readPos_ = 0;
+        writePos_ = readable;
+        assert(readable == ReadableBytes());
+    }
 }
 
