@@ -128,12 +128,12 @@ void Log::write(int level,const char* format,...) {
         buffer_.HasWritten(m);
         buffer_.Append("\n\0",2);
 
-        if (isAsync_ && Q_ != nullptr && !Q_->full()) {
+        if (isAsync_ && Q_ != nullptr && !Q_->full()) { // 异步放入阻塞队列
             Q_->push_back(buffer_.RetrieveAllToStr());
-        } else {
+        } else { // 同步写入
             fputs(buffer_.Peek(),fp_);
         }
-        buffer_.RetrieveAll();
+        buffer_.RetrieveAll(); // 清空buffer
     }
 }
 
