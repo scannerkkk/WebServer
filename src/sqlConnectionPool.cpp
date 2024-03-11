@@ -37,6 +37,7 @@ MYSQL* SqlConnectionPool::getConnection() {
     return connection;
 }
 
+// 放入连接池，并没有关闭连接
 void SqlConnectionPool::freeConnection(MYSQL* connection) {
     assert(connection != nullptr);
     lock_guard<mutex> locker(mut_);
@@ -47,4 +48,14 @@ void SqlConnectionPool::freeConnection(MYSQL* connection) {
 int SqlConnectionPool::getFreeConnectionCount() {
     lock_guard<mutex> locker(mut_);
     return Q_.size();
+}
+
+void SqlConnectionPool::closePool() {
+    lock_guard<mutex> locker(mut_);
+    while (!Q_.empty()) {
+        auto connection = Q_.front();
+        Q_.pop();
+        mysql_close(connection);
+    }
+    mysql_library_end();
 }
