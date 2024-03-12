@@ -90,6 +90,14 @@ sem_t
 2、发送信号量，其作用是让信号量的值+1。这就实现了线程的同步控制。
 
 四.HTTP状态机
+HTTP实现功能：
+1.读取请求
+2.解析请求
+3.生成响应
+4.发送响应
+
+从解析请求行到解析请求头再到解析请求体，是一个自动的过程
+
 利用正则表达式解析HTTP报文
 $表示从尾端开始
 ^表示除这个字符之外
@@ -110,3 +118,33 @@ url编码解码
 &       URL中指定的参数间的分隔符
 =       URL中指定参数的值
 ?       用于分隔路径和查询参数等
+
+stat函数用来获取指定路径的文件或者文件夹的信息
+成功返回0，否则返回-1
+
+
+struct stat 
+{
+    dev_t     st_dev;         /* ID of device containing file */文件使用的设备号
+    ino_t     st_ino;         /* Inode number */ 索引节点号
+    mode_t    st_mode;        /* File type and mode */文件类型和模式
+    nlink_t   st_nlink;       /* Number of hard links */文件的硬连接数
+    uid_t     st_uid;         /* User ID of owner */所有者的用户ID
+    gid_t     st_gid;         /* Group ID of owner */所有者的组ID
+    dev_t     st_rdev;        /* Device ID (if special file) */设备ID
+    off_t     st_size;        /* Total size, in bytes */以字节为单位的文件容量
+    blksize_t st_blksize;     /* Block size for filesystem I/O */文件系统 I/O块大小
+    blkcnt_t  st_blocks;      /* Number of 512B blocks allocated */文件所占的磁盘块
+
+    /* 自 Linux 2.6 起，内核支持纳秒以下时间戳字段的精度。
+                    Linux 2.6 之前的详细信息，请参见注释。 */
+
+    struct timespec st_atim;  /* Time of last access*/最后一次访问该文件的时间
+    struct timespec st_mtim;  /* Time of last modification*/最后一次修改该文件的时间
+    struct timespec st_ctim;  /* Time of last status change*/最后一次修改文件状态的时 
+    间
+
+    #define st_atime st_atim.tv_sec      /* 向后兼容 */
+    #define st_mtime st_mtim.tv_sec
+    #define st_ctime st_ctim.tv_sec
+    };
