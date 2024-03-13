@@ -2,7 +2,7 @@
 
 using namespace std;
 unordered_map<string,string> HttpResponse::SUFFIX_TYPE {
-     { ".html",  "text/html" },
+    { ".html",  "text/html" },
     { ".xml",   "text/xml" },
     { ".xhtml", "application/xhtml+xml" },
     { ".txt",   "text/plain" },

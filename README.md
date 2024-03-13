@@ -148,3 +148,67 @@ struct stat
     #define st_mtime st_mtim.tv_sec
     #define st_ctime st_ctim.tv_sec
     };
+
+open函数用于打开和创建文件，成功返回fd，否则返回-1。
+O_RDONLY 只读模式
+O_WRONLY 只写模式
+O_RDWR   读写模式
+
+mmap函数奖一个文件或者其他对象映射进内存。文件被映射到多个页上，如果文件的大小不是所有页的大小之和，最后一个页不被使用的空间将会清零。
+mmap操作提供了一种机制，让用户程序直接访问设备内存，这种机制，相比较在用户空间和内核空间互相拷贝数据，效率更高。
+
+mmap()是以PAGE_SIZE为单位进行映射，若要映射非PAGE_SIZE整数倍的地址范围，要先进行内存对齐，强行以PAGE_SIZE的倍数大小进行映射。
+
+start： 映射区的开始地址，设置为0时表示由系统决定映射区的起始地址。
+length： 映射区的长度。//长度单位是 以字节为单位，不足一内存页按一内存页处理
+prot： 期望的内存保护标志，不能与文件的打开模式冲突。是以下的某个值，可以通过or运算合理地组合在一起
+
+PROT_EXEC //页内容可以被执行
+PROT_READ //页内容可以被读取
+PROT_WRITE //页可以被写入
+PROT_NONE //页不可访问
+
+flags： 指定映射对象的类型，映射选项和映射页是否可以共享。它的值可以是一个或者多个以下位的组合体
+
+MAP_FIXED //使用指定的映射起始地址，如果由start和len参数指定的内存区重叠于现存的映射空间，重叠部分将会被丢弃。如果指定的起始地址不可用，操作将会失败。并且起始地址必须落在页的边界上。
+MAP_SHARED //与其它所有映射这个对象的进程共享映射空间。对共享区的写入，相当于输出到文件。直到msync()或者munmap()被调用，文件实际上不会被更新。
+MAP_PRIVATE //建立一个写入时拷贝的私有映射。内存区域的写入不会影响到原文件。这个标志和以上标志是互斥的，只能使用其中一个。
+MAP_DENYWRITE //这个标志被忽略。
+MAP_EXECUTABLE //同上
+MAP_NORESERVE //不要为这个映射保留交换空间。当交换空间被保留，对映射区修改的可能会得到保证。当交换空间不被保留，同时内存不足，对映射区的修改会引起段违例信号。
+MAP_LOCKED //锁定映射区的页面，从而防止页面被交换出内存。
+MAP_GROWSDOWN //用于堆栈，告诉内核VM系统，映射区可以向下扩展。
+MAP_ANONYMOUS //匿名映射，映射区不与任何文件关联。
+MAP_ANON //MAP_ANONYMOUS的别称，不再被使用。
+MAP_FILE //兼容标志，被忽略。
+MAP_32BIT //将映射区放在进程地址空间的低2GB，MAP_FIXED指定时会被忽略。当前这个标志只在x86-64平台上得到支持。
+MAP_POPULATE //为文件映射通过预读的方式准备好页表。随后对映射区的访问不会被页违例阻塞。
+MAP_NONBLOCK //仅和MAP_POPULATE一起使用时才有意义。不执行预读，只为已存在于内存中的页面建立页表入口。
+
+
+fd： 有效的文件描述词。一般是由open()函数返回，其值也可以设置为-1，此时需要指定flags参数中的MAP_ANON,表明进行的是匿名映射。
+off_toffset： 被映射对象内容的起点。
+
+
+munmap执行相反的操作，删除特定地址区域的对象映射，基于文件的映射，在mmap和munmap执行过程的任何时刻，被映射文件的st_atime可能被更新。
+
+sockaddr在头文件#include<sys/socket.h>中定义，sockaddr的缺陷是：sa_data把目标地址和端口信息混在一起了。
+
+sockaddr_in
+sockaddr_in在头文件#include<netinet/in.h>或#include <arpa/inet.h>中定义，该结构体解决了sockaddr的缺陷，把port和addr 分开储存在两个变量中。
+
+
+inet_ntoa函数
+inet_ntoa函数所在的头文件：<arpa/inet.h>
+将一个网络字节序的IP地址（也就是结构体in_addr类型变量）转化为点分十进制的IP地址（字符串）。
+
+errno定义于头文件<cerrno> <errno.h> errno 是用于错误指示的预处理器宏
+
+c++11为了减少平台差异匹配了POSIX错误码中的大多数具体标准c的请参见<errno.h>文件及包含部分，有些可能是平台扩展的linux可以参照 man errno
+
+writev和readv
+相比read和write一次只能下发一个IO请求，并将数据读写到一个指定的缓冲区，readv和writev可以一次性指定多个缓冲区进行读写。
+
+readv和writev函数用于在一次函数调用中读、写多个非连续缓冲区。有时也将这两个函数称为散布读和聚集写
+
+它们只需一次系统调用就可以实现在文件和进程的多个缓冲区之间传送数据，免除了多次系统调用或复制数据的开销。
