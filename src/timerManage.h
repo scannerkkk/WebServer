@@ -12,9 +12,9 @@
 #include "log.h"
 
 typedef std::function<void()> timeoutCallBack;
-typedef std::chrono::high_resolution_clock clock;
+typedef std::chrono::high_resolution_clock Clock;
 typedef std::chrono::milliseconds ms;
-typedef clock::time_point timeStamp;
+typedef Clock::time_point timeStamp;
 
 struct TimerNode {
     int id;

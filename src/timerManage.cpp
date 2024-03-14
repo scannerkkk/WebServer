@@ -61,7 +61,7 @@ void TimerManage::del_(size_t index) {
 
 void TimerManage::adjust(int id,int newExpires) {
     assert(!heap_.empty() && ref_.count(id));
-    heap_[ref_[id]].expires = clock::now() + ms(newExpires);
+    heap_[ref_[id]].expires = Clock::now() + ms(newExpires);
     siftDown_(ref_[id],heap_.size());
 }
 
@@ -69,7 +69,7 @@ void TimerManage::add(int id,int timeOut,const timeoutCallBack& cb) {
     assert(id >= 0);
     if (ref_.count(id)) {
         int tmp = ref_[id];
-        heap_[tmp].expires = clock::now() + ms(timeOut);
+        heap_[tmp].expires = Clock::now() + ms(timeOut);
         heap_[tmp].cb = cb;
         if (!siftDown_(tmp,heap_.size())) {
             siftUp_(tmp);
@@ -77,7 +77,7 @@ void TimerManage::add(int id,int timeOut,const timeoutCallBack& cb) {
     } else {
         size_t n = heap_.size();
         ref_[id] = n;
-        heap_.push_back({id,clock::now() + ms(timeOut),cb});
+        heap_.push_back({id,Clock::now() + ms(timeOut),cb});
         siftUp_(n);
     }
 }
@@ -98,7 +98,7 @@ void TimerManage::tick() {
     }
     while (!heap_.empty()) {
         TimerNode node = heap_.front();
-        if (std::chrono::duration_cast<ms>(node.expires - clock::now()).count() > 0) {
+        if (std::chrono::duration_cast<ms>(node.expires - Clock::now()).count() > 0) {
             break;
         }
         node.cb();
@@ -120,7 +120,7 @@ int TimerManage::getNextTick() {
     tick();
     size_t res = -1;
     if (!heap_.empty()) {
-        res = std::chrono::duration_cast<ms>(heap_.front().expires - clock::now()).count();
+        res = std::chrono::duration_cast<ms>(heap_.front().expires - Clock::now()).count();
         if (res < 0) {
             res = 0;
         }
