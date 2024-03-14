@@ -8,6 +8,7 @@ TimerManage::~TimerManage() {
     clear();
 }
 
+// 交换两个节点，并且要把ref_索引交换
 void TimerManage::swapNode_(size_t i,size_t j) {
     assert(i >= 0 && i < heap_.size());
     assert(j >= 0 && j < heap_.size());
@@ -46,6 +47,7 @@ bool TimerManage::siftDown_(size_t parent,size_t n) {
     return idx > parent;
 }
 
+// 删除指定位置得结点
 void TimerManage::del_(size_t index) {
     assert(index >= 0 && index < heap_.size());
     size_t n = heap_.size() - 1;
@@ -59,6 +61,7 @@ void TimerManage::del_(size_t index) {
     heap_.pop_back();
 }
 
+// 调整指定id得结点
 void TimerManage::adjust(int id,int newExpires) {
     assert(!heap_.empty() && ref_.count(id));
     heap_[ref_[id]].expires = Clock::now() + ms(newExpires);
@@ -82,6 +85,7 @@ void TimerManage::add(int id,int timeOut,const timeoutCallBack& cb) {
     }
 }
 
+// 删除指定id，并触发回调函数
 void TimerManage::doWork(int id) {
     if (heap_.empty() || !ref_.count(id)) {
         return;
@@ -92,6 +96,7 @@ void TimerManage::doWork(int id) {
     del_(i);
 }
 
+// 起搏函数，清除超时结点
 void TimerManage::tick() {
     if (heap_.empty()) {
         return;
