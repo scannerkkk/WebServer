@@ -1,3 +1,5 @@
+#ifndef LOG_CPP
+#define LOG_CPP
 #include "log.h"
 
 Log::Log() {
@@ -11,18 +13,17 @@ Log::Log() {
 
 Log::~Log() {
     while (!Q_->empty()) {
-        Q_->flush();                // 唤醒消费者，处理掉剩下的任务
+        Q_->flush();
     }
-    Q_->close();                    // 关闭队列
-    writeThread_->join();           // 等待当前线程完成手中的任务
-    if (fp_) {                      // 关闭文件描述符
-        lock_guard<mutex> locker(mut_); 
-        flush();                    // 清空缓冲区中的数据
-        fclose(fp_);                // 关闭日志文件
+    Q_->close();
+    writeThread_->join();
+    if (fp_) {
+        lock_guard<mutex> locker(mut_);
+        flush();
+        fclose(fp_);
     }
 }
 
-// 唤醒阻塞队列消费者，开始写日志
 void Log::flush() {
     if (isAsync_) {
         Q_->flush();
@@ -30,18 +31,15 @@ void Log::flush() {
     fflush(fp_);
 }
 
-// 懒汉模式 
 Log* Log::instance() {
     static Log log;
     return &log;
 }
 
-// 异步日志的写线程
 void Log::flushLogThread() {
     Log::instance()->asyncWrite_();
 }
 
-// 写线程的执行函数
 void Log::asyncWrite_() {
     string str("");
     while (Q_->pop(str)) {
@@ -50,15 +48,14 @@ void Log::asyncWrite_() {
     }
 }
 
-// 初始化日志实例
 void Log::init(int level,const char* path,const char* suffix,int maxCapacity){
     level_ = level;
     isOpen_ = true;
     path_ = path;
     suffix_ = suffix;
-    if (maxCapacity) { // 异步
+    if (maxCapacity) {
         isAsync_ = true;
-        if (Q_ == nullptr) { // 为空则创建
+        if (Q_ == nullptr) {
             unique_ptr<BlockQueue<std::string>> nQ(new BlockQueue<std::string>);
             Q_ = move(nQ);
             unique_ptr<thread> nT(new thread(flushLogThread));
@@ -81,7 +78,7 @@ void Log::init(int level,const char* path,const char* suffix,int maxCapacity){
             fclose(fp_);
         }
         fp_ = fopen(fileName,"a");
-        if (fp_ == nullptr) { // 目录不存在则创建
+        if (fp_ == nullptr) {
             mkdir(path_,0777);
             fp_ = fopen(fileName,"a");
         }
@@ -104,9 +101,11 @@ void Log::write(int level,const char* format,...) {
         char tail[36] = {0};
         snprintf(tail,36,"%04d_%02d_%02d",t.tm_year + 1900,t.tm_mon + 1,t.tm_mday);
         if (toDay_ != t.tm_mday) {
-            snprintf(newFile,LOG_NAME_LEN - 72,"%s/%s%s",path_,tail,suffix_);
+            snprintf(newFile,LOG_NAME_LEN - 72,"%s%s%s",path_,tail,suffix_);
+            toDay_ = t.tm_mday;
+            lineCount_ = 0;
         } else {
-            snprintf(newFile,LOG_NAME_LEN - 72,"%s/%s-%d%s",path_,tail,(lineCount_ / MAX_LINES),suffix_);
+            snprintf(newFile,LOG_NAME_LEN - 72,"%s%s-%d%s",path_,tail,(lineCount_ / MAX_LINES),suffix_);
         }
         locker.lock();
         flush();
@@ -128,16 +127,15 @@ void Log::write(int level,const char* format,...) {
         buffer_.HasWritten(m);
         buffer_.Append("\n\0",2);
 
-        if (isAsync_ && Q_ != nullptr && !Q_->full()) { // 异步放入阻塞队列
+        if (isAsync_ && Q_ != nullptr && !Q_->full()) {
             Q_->push_back(buffer_.RetrieveAllToStr());
-        } else { // 同步写入
+        } else {
             fputs(buffer_.Peek(),fp_);
         }
-        buffer_.RetrieveAll(); // 清空buffer
+        buffer_.RetrieveAll();
     }
 }
 
-// 添加日志等级
 void Log::appendLogLevelTitle_(int level) {
     switch (level)
     {
@@ -172,3 +170,5 @@ void Log::setLevel(int level) {
 bool Log::isOpen() {
     return isOpen_;
 }
+
+#endif

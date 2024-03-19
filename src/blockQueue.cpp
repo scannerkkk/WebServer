@@ -12,7 +12,7 @@ BlockQueue<T>::~BlockQueue() {
     close();
 }
 
-// 操作队列之前需要先上锁
+// lock before operation
 template <class T>
 void BlockQueue<T>::close() {
     clear();
@@ -42,32 +42,32 @@ bool BlockQueue<T>::full() {
 template <class T>
 void BlockQueue<T>::push_back(const T& item) {
     unique_lock<mutex> locker(mut_);
-    while (deq_.size() >= capacity_) { // 队列已满，进行等待
-        producer_.wait(locker); // 暂停生产，等待消费者唤醒生产条件变量
+    while (deq_.size() >= capacity_) {
+        producer_.wait(locker);
     }
     deq_.push_back(item);
-    consumer_.notify_one(); // 唤醒消费者
+    consumer_.notify_one();
 }
 
 template <class T>
 void BlockQueue<T>::push_front(const T& item) {
     unique_lock<mutex> locker(mut_);
-    while (deq_.size() >= capacity_) { // 队列已满，进行等待
-        producer_.wait(locker); // 暂停生产，等待消费者唤醒生产条件变量
+    while (deq_.size() >= capacity_) {
+        producer_.wait(locker);
     }
     deq_.push_front(item);
-    consumer_.notify_one(); // 唤醒消费者
+    consumer_.notify_one();
 }
 
 template <class T>
 bool BlockQueue<T>::pop(T& item) {
     unique_lock<mutex> locker(mut_);
-    while (deq_.empty()) { // 队列空了，需要等待
+    while (deq_.empty()) {
         consumer_.wait(locker);
     }
     item = deq_.front();
     deq_.pop_front();
-    producer_.notify_one(); // 唤醒生产者
+    producer_.notify_one();
     return true;
 }
 
@@ -75,11 +75,11 @@ template <class T>
 bool BlockQueue<T>::pop(T &item,int timeout) {
     unique_lock<mutex> locker(mut_);
     while (deq_.empty()) {
-        if (consumer_.wait_for(locker,chrono::seconds(timeout)) // 判断是否超时
+        if (consumer_.wait_for(locker,chrono::seconds(timeout))
             == cv_status::timeout) {
             return false;
         }
-        if (isClose_) { // 判断是否已经关闭
+        if (isClose_) {
             return false;
         }
     }

@@ -13,7 +13,7 @@
 
 class Log {
 public:
-    void init(int level,const char* path = "./log",const char* suffix = ".log",int maxCapacity = 1024);
+    void init(int level,const char* path = "",const char* suffix = ".log",int maxCapacity = 1024); // /.log
     
     static Log* instance();
     static void flushLogThread();

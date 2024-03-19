@@ -17,15 +17,15 @@ public:
     explicit ThreadPool(int threadCount = 8) : pool_(std::make_shared<Pool>()) {
         assert(threadCount > 0);
         for (int i = 0;i < threadCount;i ++) {
-            std::thread([this]() { // 捕获this指针，在当前lambda中可以调用该类得成员函数和成员变量
+            std::thread([this]() {
                 std::unique_lock<std::mutex> locker(pool_->mut_);
                 while (true) {
                     if (!pool_->tasks.empty()) {
                         auto task = std::move(pool_->tasks.front());
                         pool_->tasks.pop();
-                        locker.unlock(); // 取出来之后就可以解锁了
+                        locker.unlock();
                         task();
-                        locker.lock(); // 执行完后重新上锁
+                        locker.lock();
                     } else if (pool_->isClose) {
                         break;
                     } else {

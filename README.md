@@ -225,3 +225,26 @@ time_point：时间点
 high_resolution_clock::now()方法，返回当前时间，返回得时间点是按秒为单位得。
 std::chrono::milliseconds表示毫秒，可用于duration<>的模板类
 
+
+六.Epoll和WebServer
+
+为什么IO复用需要用非阻塞IO
+
+原因1：当数据到达socket缓冲区得时候，select会报告这个socket可读，但是随后因为一些原因，比如校验和错误，内核丢弃了这个数据，这个时候，如果采用了阻塞IO，唤醒得程序去读取一个已经被丢弃得数据，肯定读不到，所以就会一直阻塞到那里。
+
+原因2：到达缓冲区得数据有可能被别人抢走，比如多个进程accept同一个socket时引发得惊群现象，只有一个客户端连接到来，但是所有得监听程序都会被唤醒，最终只有一个进程可以accept到这个请求。
+
+原因3：ET边缘模式下，必须要用到非阻塞得IO，因为程序中需要循环读和写，直到EAGAIN得出现，如果使用阻塞IO就容易被阻塞住。
+
+EAGAIN是一个错误代码
+如果socket的状态为非阻塞，但是accept函数没有找到可用的连接，就会返回EAGAIN错误。
+
+应用1：accept
+我们时常会在死循环中设置if(errno == EAGAIN) break;一旦accept在缓冲区找不到可用的连接了，那么accept会将errno设置为EAGAIN，这个时候这个判断就说明，accept已经将缓冲区中的连接读取完了，所以break
+
+应用2：recv和send
+前提：非阻塞的IO、EPOLL ET边缘触发模式
+
+recv：在EPOLLIN|EPOLLET监视可读、边缘触发模式下，recv函数会时刻关注缓冲区中是否有数据可读，如果缓冲区中有数据未处理，EPOLLET模式下的epoll只会汇报一次socket有可读事件，当有新的数据加入缓冲区时，就会再次汇报可读。
+
+send：在EPOLLOUT|EPOLLET监视可读、边缘触发模式下，send函数会时刻关注缓冲区中是否已满，如果发送缓冲区未满，EPOLLET模式下就会触发一次可写事件，只有当缓冲区从满变为“有空”的时候，才会再次触发可写事件。

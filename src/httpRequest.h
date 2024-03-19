@@ -7,13 +7,13 @@
 #include <string>
 #include <errno.h>
 #include <mysql/mysql.h>
-#include "buffer.h"
-#include "log.h"
+#include "buffer.cpp"
+#include "log.cpp"
 #include "sqlConnectionPool.cpp"
 
 class HttpRequest {
 public:
-    enum PARSE_STATE { // 解析状态
+    enum PARSE_STATE {
         REQUEST_LINE,
         HEADERS,
         BODY,
@@ -36,12 +36,12 @@ public:
     std::string getPost(const char* key)   const;
 
 private:
-    bool parseRequestLine_(const std::string& line);     // 处理请求行
-    void parseHeader_(const std::string& line);          // 处理请求头
-    void parseBody_(const std::string& line);            // 处理请求体
-    void parsePath_();                                   // 处理请求路径
-    void parsePost_();                                   // 处理Post事件
-    void parseFromUrlencoded_();                         // 从url解析编码
+    bool parseRequestLine_(const std::string& line);
+    void parseHeader_(const std::string& line);
+    void parseBody_(const std::string& line);
+    void parsePath_();
+    void parsePost_();
+    void parseFromUrlencoded_();
 
     static bool userVerify(const std::string& name,const std::string& password,bool isLogin);
     PARSE_STATE state_;

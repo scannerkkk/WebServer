@@ -1,3 +1,5 @@
+#ifndef BUFFER_CPP
+#define BUFFER_CPP
 #include "buffer.h"
 
 // 构造函数初始化
@@ -145,4 +147,4 @@ void Buffer::MakeSpace_(size_t len) {
         assert(readable == ReadableBytes());
     }
 }
-
+#endif

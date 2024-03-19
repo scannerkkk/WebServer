@@ -6,10 +6,10 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <errno.h>
-#include "log.h"
-#include "buffer.h"
-#include "httpRequest.h"
-#include "httpResponse.h"
+#include "log.cpp"
+#include "buffer.cpp"
+#include "httpRequest.cpp"
+#include "httpResponse.cpp"
 
 class HttpConnection {
 public:

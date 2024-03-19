@@ -9,7 +9,7 @@
 #include <functional>
 #include <cassert>
 #include <chrono>
-#include "log.h"
+#include "log.cpp"
 
 typedef std::function<void()> timeoutCallBack;
 typedef std::chrono::high_resolution_clock Clock;
@@ -48,6 +48,6 @@ private:
     void swapNode_(size_t,size_t);
 
     std::vector<TimerNode> heap_;
-    std::unordered_map<int,size_t> ref_; // id对应的在heap_中的下标，方便用heap_的时候查找
+    std::unordered_map<int,size_t> ref_;
 };
 #endif

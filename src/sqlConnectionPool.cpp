@@ -1,3 +1,5 @@
+#ifndef SQL_CONNECTION_POOL_CPP
+#define SQL_CONNECTION_POOL_CPP
 #include "sqlConnectionPool.h"
 
 SqlConnectionPool* SqlConnectionPool::instance() {
@@ -50,7 +52,6 @@ int SqlConnectionPool::getFreeConnectionCount() {
     return Q_.size();
 }
 
-// 释放所有连接
 void SqlConnectionPool::closePool() {
     lock_guard<mutex> locker(mut_);
     while (!Q_.empty()) {
@@ -60,3 +61,5 @@ void SqlConnectionPool::closePool() {
     }
     mysql_library_end();
 }
+
+#endif

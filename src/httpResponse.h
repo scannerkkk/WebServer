@@ -6,8 +6,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include "buffer.h"
-#include "log.h"
+#include "buffer.cpp"
+#include "log.cpp"
 
 class HttpResponse {
 public:

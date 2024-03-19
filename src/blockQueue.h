@@ -30,12 +30,12 @@ public:
     void close();
 
 private:
-    std::deque<T> deq_;                     // 底层数据结构
-    std::mutex mut_;                        // 互斥量
-    bool isClose_;                          // 关闭标志
-    size_t capacity_;                       // 容量
-    std::condition_variable consumer_;      // 消费者条件变量
-    std::condition_variable producer_;      // 生产者条件变量
+    std::deque<T> deq_;          
+    std::mutex mut_;         
+    bool isClose_;
+    size_t capacity_;
+    std::condition_variable consumer_;
+    std::condition_variable producer_;
 };
 
 #endif
