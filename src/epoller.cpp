@@ -35,15 +35,18 @@ bool Epoller::delFd(int fd) {
     return epoll_ctl(epollFd_,EPOLL_CTL_DEL,fd,0) == 0;
 }
 
+// 返回事件个数
 int Epoller::wait(int timeoutMs) {
     return epoll_wait(epollFd_,&events_[0],static_cast<int>(events_.size()),timeoutMs);
 }
 
+// 获取事件的id
 int Epoller::getEventFd(size_t i) const {
     assert(i < events_.size() && i >= 0);
     return events_[i].data.fd;
 }
 
+// 获取事件属性
 uint32_t Epoller::getEvents(size_t i) const {
     assert(i < events_.size() && i >= 0);
     return events_[i].events;

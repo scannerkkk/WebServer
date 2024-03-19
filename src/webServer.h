@@ -47,13 +47,13 @@ private:
 
     int port_;
     bool openLinger_;
-    int timeoutMs_;
+    int timeoutMs_; // 毫秒
     bool isClose_;
     int listenFd_;
     char* srcDir_;
 
-    uint32_t listenEvent_;
-    uint32_t connectionEvent_;
+    uint32_t listenEvent_; // 监听事件
+    uint32_t connectionEvent_; // 连接事件
 
     std::unique_ptr<TimerManage> timer_;
     std::unique_ptr<ThreadPool> threadPool_;

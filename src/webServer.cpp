@@ -6,7 +6,7 @@ WebServer::WebServer(int port,int trigMode,int timeoutMs,bool openLinger,
               bool openLog,int logLevel,int logQueSize):
               port_(port), openLinger_(openLinger), timeoutMs_(timeoutMs), 
               isClose_(false), timer_(new TimerManage()), threadPool_(new ThreadPool(threadNumber)), epoller_(new Epoller()) {
-    if (openLog) {
+    if (openLog) { // 是否打开日志
         Log::instance()->init(logLevel,"",".log",logQueSize);
         if (isClose_) {
             LOG_DEBUG("Server init error");
@@ -14,13 +14,13 @@ WebServer::WebServer(int port,int trigMode,int timeoutMs,bool openLinger,
             LOG_INFO("server init successful!");
         }
     }
-    srcDir_ = getcwd(nullptr,0);
-    assert(srcDir_ != nullptr);
+    srcDir_ = getcwd(nullptr,0); // 获取当前路径
+    assert(srcDir_ != nullptr); 
     strcat(srcDir_,"/resources/");
     HttpConnection::userCount = 0;
     HttpConnection::srcDir = srcDir_;
 
-    SqlConnectionPool::instance()->init("localhost",sqlPort,sqlUser,sqlPassword,dbName,connectionPollNumber);
+    SqlConnectionPool::instance()->init("localhost",sqlPort,sqlUser,sqlPassword,dbName,connectionPollNumber); // 初始化连接池
     initEventMode_(trigMode);
     if (!initSocket_()) {
         isClose_ = true;
@@ -37,8 +37,8 @@ WebServer::~WebServer() {
 }
 
 void WebServer::initEventMode_(int trigMode) {
-    listenEvent_ = EPOLLRDHUP;
-    connectionEvent_ = EPOLLONESHOT | EPOLLHUP;
+    listenEvent_ = EPOLLRDHUP; // 检测Socket关闭
+    connectionEvent_ = EPOLLONESHOT | EPOLLHUP; // EPOLLONESHOT由一个线程处理
     switch (trigMode) {
     case 0:
         break;
@@ -70,7 +70,7 @@ void WebServer::start() {
         }
         int eventCnt = epoller_->wait(timeMs);
         for (int i = 0;i < eventCnt;i ++) {
-            int fd = epoller_->getEventFd(i);
+            int fd = epoller_->getEventFd(i); // 处理事件
             uint32_t events = epoller_->getEvents(i);
             if (fd == listenFd_) {
                 dealListen_();
@@ -117,7 +117,7 @@ void WebServer::addClient_(int fd,sockaddr_in addr) {
     LOG_INFO("Client[%d] in!",users_[fd].getFd());
 }
 
-void WebServer::dealListen_() {
+void WebServer::dealListen_() { // 处理监听套接字
     sockaddr_in addr;
     socklen_t len = sizeof(addr);
     do {
@@ -133,13 +133,13 @@ void WebServer::dealListen_() {
     } while (listenEvent_ & EPOLLET);
 }
 
-void WebServer::dealRead_(HttpConnection* client) {
+void WebServer::dealRead_(HttpConnection* client) { // 处理读事件
     assert(client != nullptr);
     extentTime_(client);
     threadPool_->AddTask(std::bind(&WebServer::onRead_,this,client));
 }
 
-void WebServer::dealWrite_(HttpConnection* client) {
+void WebServer::dealWrite_(HttpConnection* client) { // 处理写事件
     assert(client != nullptr);
     extentTime_(client);
     threadPool_->AddTask(std::bind(&WebServer::onWrite_,this,client));
@@ -155,8 +155,8 @@ void WebServer::extentTime_(HttpConnection* client) {
 void WebServer::onRead_(HttpConnection* client) {
     assert(client);
     int ret = -1,readErrno = 0;
-    ret = client->read(&readErrno);
-    if (ret <= 0 && readErrno != EAGAIN) {
+    ret = client->read(&readErrno); // 读取客户端套接字的数据，读到httpconnection的缓存区
+    if (ret <= 0 && readErrno != EAGAIN) { // 读取异常就关闭客户端
         closeConnetcion_(client);
         return;
     }
@@ -164,10 +164,10 @@ void WebServer::onRead_(HttpConnection* client) {
 }
 
 void WebServer::onProcess_(HttpConnection* client) {
-    if (client->process()) {
-        epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLOUT);
+    if (client->process()) { // 根据返回的信息重新将fd置为EPOLLOUT（写）或EPOLLIN（读）
+        epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLOUT);  // 读完事件就跟内核说可以写了
     } else {
-        epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLIN);
+        epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLIN);   // 写完事件就跟内核说可以写了
     }
 }
 
@@ -175,13 +175,13 @@ void WebServer::onWrite_(HttpConnection* client) {
     assert(client != nullptr);
     int ret = -1,writeErrno = 0;
     ret = client->write(&writeErrno);
-    if (client->toWriteBytes() == 0) {
+    if (client->toWriteBytes() == 0) { // 传输完成
         if (client->isAlive()) {
             epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLIN);
             return;
         }
     } else if (ret < 0) {
-        if (writeErrno == EAGAIN) {
+        if (writeErrno == EAGAIN) { // 缓冲区满了
             epoller_->modFd(client->getFd(),connectionEvent_ | EPOLLOUT);
             return;
         }
@@ -199,6 +199,7 @@ bool WebServer::initSocket_() {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port_);
+    // 优雅关闭
     {
         linger optLinger;
         if (openLinger_) {
@@ -248,7 +249,7 @@ bool WebServer::initSocket_() {
     return true;
 }
 
-int WebServer::setFdNonBlocking(int fd) {
+int WebServer::setFdNonBlocking(int fd) { // 设置非阻塞
     assert(fd > 0);
     return fcntl(fd,F_SETFL,fcntl(fd,F_GETFD,0) | O_NONBLOCK);
 }
