@@ -111,3 +111,7 @@ EAGAIN是一个错误代码
 recv：在EPOLLIN|EPOLLET监视可读、边缘触发模式下，recv函数会时刻关注缓冲区中是否有数据可读，如果缓冲区中有数据未处理，EPOLLET模式下的epoll只会汇报一次socket有可读事件，当有新的数据加入缓冲区时，就会再次汇报可读。
 
 send：在EPOLLOUT|EPOLLET监视可读、边缘触发模式下，send函数会时刻关注缓冲区中是否已满，如果发送缓冲区未满，EPOLLET模式下就会触发一次可写事件，只有当缓冲区从满变为“有空”的时候，才会再次触发可写事件。
+
+
+./server 运行server
+./webbench-1.5/webbench -c 100 -t 10 http://ip:port/
